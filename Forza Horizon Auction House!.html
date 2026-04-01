@@ -1,0 +1,402 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>FORZA HORIZON AUCTION HOUSE!</title>
+  <style>
+    body {
+      font-family: Arial;
+      background: linear-gradient(135deg,#000000,#000000);
+      color: white;
+      margin:0;
+    }
+    h1 { text-align:center; }
+    button {
+      padding:10px; margin:5px; border:none; border-radius:10px;
+      background:rgba(255,255,255,0.1); color:white; cursor:pointer;
+    }
+    button:hover { transform:scale(1.1); }
+    .panel {
+      backdrop-filter:blur(10px);
+      background:rgba(255,255,255,0.05);
+      padding:20px; margin:20px; border-radius:12px;
+    }
+    .car-box {
+      background:rgba(255,255,255,0.05);
+      padding:10px; margin:10px; border-radius:10px;
+    }
+    .garage-view {
+      display:flex; flex-direction:column; align-items:center;
+    }
+    .garage-img {
+      width:80%; height:400px; background:#000000;
+      display:flex; align-items:center; justify-content:center;
+    }
+    .garage-controls { margin-top:20px; }
+  </style>
+</head>
+<body>
+
+<h1>FORZA HORIZON AUCTION HOUSE!</h1>
+
+<!-- LOGIN -->
+<div id="login" class="panel">
+  <input id="username" placeholder="Enter Username">
+  <button onclick="startGame()">Start</button>
+</div>
+
+<!-- MENU -->
+<div id="menu" class="panel" style="display:none;">
+  <h2 id="welcome"></h2>
+  <p>Credits: <span id="credits"></span></p>
+
+  <select id="brand">
+    <option>Lamborgini</option>
+    <option>Toyota</option>
+    <option>Ferrari</option>
+    <option>Ford</option>
+    <option>Pagani</option>
+    <option>Konnisegg</option>
+    <option>BMW</option>
+    <option>Mercedes</option>
+    <option>Audi</option>
+    <option>Porsche</option>
+    <option>Mclaren</option>
+    <option>Honda</option>
+    <option>Dodge</option>
+    <option>Aston Martin</option>
+    <option>BYD</option>
+    <option>Mazda</option>
+    <option>Chevrolet</option>
+    <option>Redbull</option>
+    <option>MINI</option>
+    <option>Mitsbishi</option>
+    <option>Citroen</option>
+    <option>Lotus</option>
+    <option>Bentley</option>
+    <option>Alfa Romeo</option>
+    <option>Lexus</option>
+    <option>Land Rover</option>
+    <option>Peugeot</option>
+ </select>
+
+  <select id="car">
+    <option>Aventador</option>
+    <option>Supra</option>
+    <option>FerrariLaFerrari</option>
+    <option>Mustang</option>
+    <option>Zonda R</option>
+    <option>Regera</option>
+    <option>M4</option>
+    <option>Maybach</option>
+    <option>A4</option>
+    <option>911 Turbo</option>
+    <option>P1</option>
+    <option>Civic</option>
+    <option>HellCat</option>
+    <option>DB-5</option>
+    <option>eMAX 7</option>
+    <option>Miata-5</option>
+    <option>Corvette C8</option>
+    <option>Oracle</option>
+    <option>Cooper</option>
+    <option>Lancer</option>
+    <option>C-5</option>
+    <option>Evija</option>
+    <option>Flying Spur</option>
+    <option>4C</option>
+    <option>LS400</option>
+    <option>Defender</option>
+    <option>208 Facelift</option>
+ </select>
+
+  <input id="budget" type="number" placeholder="Budget">
+  <br>
+  <button onclick="startSniping()">Start Auction</button>
+  <button onclick="openGarage()">Garage</button>
+</div>
+
+<!-- GAME -->
+<div id="game" class="panel" style="display:none;">
+  <button onclick="backToMenu()">Back</button>
+  <div id="carContainer"></div>
+</div>
+
+<!-- GARAGE -->
+<div id="garage" class="panel" style="display:none;">
+  <div class="garage-view">
+    <div class="garage-img" id="garageImg"></div>
+    <div id="garageInfo"></div>
+    <div class="garage-controls">
+      <button onclick="prevCar()">Prev</button>
+      <button onclick="nextCar()">Next</button>
+      <button onclick="sellCar()">Sell</button>
+      <button onclick="closeGarage()">Back</button>
+    </div>
+  </div>
+</div>
+
+<script>
+let player = { username:"", credits:1000000, inventory:[] };
+let snipingActive = false;
+let currentGarageIndex = 0;
+
+// AI rivals
+const aiPlayers = ["ShadowRacer","NitroX","DriftKing","SpeedQueen","Carlover","CarbonFiberThaGoat","TurboTitan","Neon Racer","NitroMode","BinaryBurnout","ApexPredtor","Need4Speed","DriftQueen","L.Hamilton","M.Verstappen"];
+
+// Car database with rarity and images
+const cars = [
+  {
+    brand:"Lamborghini", name:"Aventador", price:950000, rarity:"rare",
+    marketMultiplier:1.5
+  },
+  {
+    brand:"Toyota", name:"Supra", price:120000, rarity:"common",
+    marketMultiplier:1.2
+  },
+  {
+    brand:"Ferrari", name:"LaFerrari", price:5000000, rarity:"legendary",
+    marketMultiplier:2.5
+  },
+  {
+    brand:"Ford", name:"Mustang", price:200000, rarity:"common",
+    marketMultiplier:1.3
+  },
+  {
+    brand:"Pagani", name:"Zonda R", price:10000000, rarity:"legendary",
+    marketMultiplier:3.0
+  },
+  {
+    brand:"Koenigsegg", name:"Regera", price:10000000, rarity:"legendary",
+    marketMultiplier:3.0
+  },
+  {
+    brand:"BMW", name:"M4", price:900000, rarity:"rare",
+    marketMultiplier:1.8
+  },
+  {
+    brand:"Mercedes", name:"Maybach", price:700000, rarity:"rare",
+    marketMultiplier:1.7
+  },
+  {
+    brand:"Audi", name:"A4", price:800000, rarity:"rare",
+    marketMultiplier:1.6
+  },
+  {
+    brand:"Porsche", name:"911 Turbo", price:950000, rarity:"common",
+    marketMultiplier:1.4
+  },
+  {
+    brand:"Mclaren", name:"P1", price:9500000, rarity:"legendary",
+    marketMultiplier:2.6
+  },
+  {
+    brand:"Honda", name:"Civic", price:950000, rarity:"common",
+    marketMultiplier:1.4
+  },
+  {
+    brand:"Dodge", name:"HellCat", price:999000, rarity:"common",
+    marketMultiplier:1.6
+  },
+  {
+    brand:"Aston Martin", name:"DB-5", price:9999000, rarity:"legendary",
+    marketMultiplier:2.9
+  },
+  {
+    brand:"BYD", name:"eMAX 7", price:990000, rarity:"common",
+    marketMultiplier:1.3
+  },
+   {
+    brand:"Mazda", name:"Miata-5", price:999000, rarity:"rare",
+    marketMultiplier:1.9
+  },
+  {
+    brand:"Chevrolet", name:"Corvette C8", price:999000, rarity:"common",
+    marketMultiplier:1.6
+  },
+  {
+    brand:"Redbull", name:"Oracle", price:999999999, rarity:"Legendary",
+    marketMultiplier:5.6
+  },
+  {
+    brand:"MINI", name:"Cooper", price:800000, rarity:"Common",
+    marketMultiplier:1.6
+  },
+  {
+    brand:"Mitsubishi", name:"Lancer", price:800000, rarity:"Common",
+    marketMultiplier:1.6
+  },
+  {
+    brand:"Citroen", name:"C-5", price:800000, rarity:"Common",
+    marketMultiplier:1.6
+  },
+  {
+    brand:"Lotus", name:"Evija", price:990000, rarity:"Rare",
+    marketMultiplier:2.0
+  },
+  {
+    brand:"Bently", name:"Flying Spur", price:990000, rarity:"Rare",
+    marketMultiplier:2.0
+  },
+  {
+    brand:"Alfa Romeo", name:"4C", price:900000, rarity:"Common",
+    marketMultiplier:1.7
+  },
+  {
+    brand:"Lexus", name:"LS-400", price:900000, rarity:"Common",
+    marketMultiplier:1.7
+  },
+  {
+    brand:"Land Rover", name:"Defender", price:990000, rarity:"Rare",
+    marketMultiplier:1.7
+  },
+  {
+    brand:"Peugeot", name:"208-Facelift", price:900000, rarity:"Common",
+    marketMultiplier:1.7
+  },
+
+  
+];
+
+
+// Spawn delay by rarity
+function getSpawnDelay(rarity){
+  if(rarity==="common") return 2000;
+  if(rarity==="rare") return 5000;
+  if(rarity==="legendary") return 10000;
+  return 3000;
+}
+
+function startGame(){
+ let name=document.getElementById("username").value;
+ if(!name) return alert("Enter username");
+ player.username=name;
+ document.getElementById("login").style.display="none";
+ document.getElementById("menu").style.display="block";
+ document.getElementById("welcome").innerText="Welcome "+name;
+ updateCredits();
+}
+
+function updateCredits(){
+ document.getElementById("credits").innerText=player.credits;
+}
+
+let selectedBrand, selectedCar, budget;
+
+function startSniping(){
+ selectedBrand=document.getElementById("brand").value;
+ selectedCar=document.getElementById("car").value;
+ budget=parseInt(document.getElementById("budget").value);
+ if(!budget) return alert("Enter budget!");
+ document.getElementById("menu").style.display="none";
+ document.getElementById("game").style.display="block";
+ snipingActive=true;
+ spawnLoop();
+}
+
+function backToMenu(){
+ snipingActive=false;
+ document.getElementById("game").style.display="none";
+ document.getElementById("menu").style.display="block";
+}
+
+function spawnLoop(){
+ if(!snipingActive) return;
+ let filtered=cars.filter(car=>car.brand===selectedBrand && car.name===selectedCar && car.price<=budget);
+ if(filtered.length===0) return;
+ let car=filtered[Math.floor(Math.random()*filtered.length)];
+ setTimeout(()=>{
+   showCar(car);
+   spawnLoop();
+ }, getSpawnDelay(car.rarity));
+}
+
+function showCar(car){
+ let div=document.createElement("div");
+ div.className="car-box";
+ div.innerHTML=`
+   <h3>${car.brand} ${car.name}</h3>
+   <img src="${car.preview}" width="200">
+   <p>Price: ${car.price}</p>
+   <p>⭐ ${car.rarity}</p>
+   <button>Buy</button>
+ `;
+ let btn=div.querySelector("button");
+ let clicked=false;
+ let startTime=Date.now();
+ btn.onclick=()=>{
+   if(clicked) return;
+   clicked=true;
+   if(player.credits>=car.price){
+     player.credits-=car.price;
+     player.inventory.push(car);
+     updateCredits();
+     let seconds=((Date.now()-startTime)/1000).toFixed(1);
+     div.innerHTML=`<h3>✅ Sold in ${seconds}s to ${player.username}</h3>`;
+   } else {
+     div.innerHTML="<h3>❌ Not enough credits</h3>";
+   }
+ };
+// AI competition
+let aiTime = Math.random() * 800; // AI reacts within 0–0.8 seconds
+setTimeout(()=>{
+  if(!clicked){
+    clicked = true;
+    let ai = aiPlayers[Math.floor(Math.random() * aiPlayers.length)];
+    let seconds = ((Date.now() - startTime) / 1000).toFixed(1);
+    div.innerHTML = `❌ Sold in ${seconds}s to ${ai}`;
+  }
+}, aiTime);
+ document.getElementById("carContainer").prepend(div);
+}
+
+// Garage view
+function openGarage(){
+ document.getElementById("menu").style.display="none";
+ document.getElementById("garage").style.display="block";
+ currentGarageIndex=0;
+ renderGarage();
+}
+
+function closeGarage(){
+ document.getElementById("garage").style.display="none";
+ document.getElementById("menu").style.display="block";
+}
+
+function renderGarage(){
+ if(player.inventory.length===0){
+   document.getElementById("garageImg").innerHTML="No cars owned yet";
+   document.getElementById("garageInfo").innerHTML="";
+   return;
+ }
+ let car=player.inventory[currentGarageIndex];
+ document.getElementById("garageImg").innerHTML=`<img src="${car.full}" width="100%">`;
+ document.getElementById("garageInfo").innerHTML=`
+   <h3>${car.brand} ${car.name}</h3>
+   <p>Price: ${car.price}</p>
+   <p>⭐ ${car.rarity}</p>
+ `;
+}
+
+function prevCar(){
+ if(currentGarageIndex>0){ currentGarageIndex--; renderGarage(); }
+}
+function nextCar(){
+ if(currentGarageIndex<player.inventory.length-1){ currentGarageIndex++; renderGarage(); }
+}
+
+function sellCar(){
+ if(player.inventory.length===0) return;
+ let car=player.inventory[currentGarageIndex];
+ let sellPrice=Math.floor(car.price*(car.marketMultiplier||1.1));
+ player.credits+=sellPrice;
+ alert(`Sold ${car.name} for ${sellPrice} (Profit: ${sellPrice-car.price})`);
+ player.inventory.splice(currentGarageIndex,1);
+ if(currentGarageIndex>=player.inventory.length) currentGarageIndex=player.inventory.length-1;
+ if(currentGarageIndex<0) currentGarageIndex=0;
+ updateCredits();
+ renderGarage();
+}
+</script>
+
+</body>
+</html>
