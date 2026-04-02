@@ -6,3 +6,4 @@ The whole Point of the game is to buy out cars before the ai (it can buy them in
 And pls pls pls put the correct brand and the correct car together (the game does not recognise wrong cars mixed with wrong brands)
 Pls note that the rarer cars take longer to show up and if they still do not show up after a bit of time ur budget is to low for that car.
 (sry for the typo in the project name)
+(The Images Erorr Has Been Fixed)
