@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
+  <meta charset="UTF-8">
   <title>FORZA HORIZON AUCTION HOUSE!</title>
   <style>
     body {
@@ -124,8 +125,8 @@
 <!-- GARAGE -->
 <div id="garage" class="panel" style="display:none;">
   <div class="garage-view">
-    <div class="garage-img" id="garageImg"></div>
-    <div id="garageInfo"></div>
+    <div id="garageInfo"></div> 
+    
     <div class="garage-controls">
       <button onclick="prevCar()">Prev</button>
       <button onclick="nextCar()">Next</button>
@@ -311,44 +312,47 @@ function spawnLoop(){
 }
 
 function showCar(car){
- let div=document.createElement("div");
- div.className="car-box";
- div.innerHTML=`
+ let div = document.createElement("div");
+ div.className = "car-box";
+ // Image tag <img> removed below
+ div.innerHTML = `
    <h3>${car.brand} ${car.name}</h3>
-   <img src="${car.preview}" width="200">
-   <p>Price: ${car.price}</p>
+   <p>Price: ${car.price.toLocaleString()} Credits</p>
    <p>⭐ ${car.rarity}</p>
    <button>Buy</button>
  `;
- let btn=div.querySelector("button");
- let clicked=false;
- let startTime=Date.now();
- btn.onclick=()=>{
+ 
+ let btn = div.querySelector("button");
+ let clicked = false;
+ let startTime = Date.now();
+
+ btn.onclick = () => {
    if(clicked) return;
-   clicked=true;
-   if(player.credits>=car.price){
-     player.credits-=car.price;
+   clicked = true;
+   if(player.credits >= car.price){
+     player.credits -= car.price;
      player.inventory.push(car);
      updateCredits();
-     let seconds=((Date.now()-startTime)/1000).toFixed(1);
-     div.innerHTML=`<h3>✅ Sold in ${seconds}s to ${player.username}</h3>`;
+     let seconds = ((Date.now() - startTime) / 1000).toFixed(1);
+     div.innerHTML = `<h3>✅ Sold in ${seconds}s to ${player.username}</h3>`;
    } else {
-     div.innerHTML="<h3>❌ Not enough credits</h3>";
+     div.innerHTML = "<h3>❌ Not enough credits</h3>";
    }
  };
-// AI competition
-let aiTime = Math.random() * 800; // AI reacts within 0–0.8 seconds
-setTimeout(()=>{
+
+ // AI competition
+ let aiTime = Math.random() * 3000; 
+ setTimeout(() => {
   if(!clicked){
     clicked = true;
     let ai = aiPlayers[Math.floor(Math.random() * aiPlayers.length)];
     let seconds = ((Date.now() - startTime) / 1000).toFixed(1);
     div.innerHTML = `❌ Sold in ${seconds}s to ${ai}`;
   }
-}, aiTime);
+ }, aiTime);
+
  document.getElementById("carContainer").prepend(div);
 }
-
 // Garage view
 function openGarage(){
  document.getElementById("menu").style.display="none";
@@ -364,12 +368,11 @@ function closeGarage(){
 
 function renderGarage(){
  if(player.inventory.length===0){
-   document.getElementById("garageImg").innerHTML="No cars owned yet";
-   document.getElementById("garageInfo").innerHTML="";
+   document.getElementById("garageInfo").innerHTML="No cars owned yet";
    return;
  }
  let car=player.inventory[currentGarageIndex];
- document.getElementById("garageImg").innerHTML=`<img src="${car.full}" width="100%">`;
+ // Removed the garageImg line that was causing the crash
  document.getElementById("garageInfo").innerHTML=`
    <h3>${car.brand} ${car.name}</h3>
    <p>Price: ${car.price}</p>
@@ -400,3 +403,4 @@ function sellCar(){
 
 </body>
 </html>
+
